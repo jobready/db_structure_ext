@@ -62,10 +62,14 @@ module DbStructureExt
 
       sql = "SHOW TRIGGERS"
 
+      structure << "delimiter //\n"
+
       select_all(sql).each do |row|
         structure << "CREATE TRIGGER #{row['Trigger']} #{row['Timing']} #{row['Event']} ON #{row['Table']} FOR EACH ROW #{row['Statement']}"
-        structure << ";\n\n"
+        structure << ";//\n\n"
       end
+
+      structure << "delimiter ;\n"
 
       structure
     end
@@ -77,11 +81,15 @@ module DbStructureExt
 
       sql = "SELECT ROUTINE_TYPE as type, ROUTINE_NAME as name FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA='#{current_database}'"
 
+      structure << "delimiter //\n"
+
       select_all(sql).each do |row|
         structure << select_one("SHOW CREATE #{row['type']} #{row['name']}")["Create #{row['type'].capitalize}"]
         structure.gsub!(/^(CREATE).+(PROCEDURE|FUNCTION)/, '\1 \2')
-        structure << ";\n\n"
+        structure << ";//\n\n"
       end
+
+      structure << "delimiter ;\n"
 
       structure
     end

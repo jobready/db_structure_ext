@@ -18,6 +18,10 @@ namespace :db do
         require 'db_structure_ext'
         connection_proxy = DbStructureExt::MysqlConnectionProxy.new(ActiveRecord::Base.connection)
         File.open(file, "w+") { |f| f << connection_proxy.structure_dump }
+
+        if ActiveRecord::Base.connection.supports_migrations?
+          File.open("#{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql", "a") { |f| f << ActiveRecord::Base.connection.dump_schema_information }
+        end
       else
         original_db_structure_dump_task.invoke
       end
